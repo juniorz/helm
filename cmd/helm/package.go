@@ -68,8 +68,7 @@ func newPackageCmd(out io.Writer) *cobra.Command {
 					return errors.New("--keyring is required for signing a package")
 				}
 			}
-			client.RepositoryConfig = settings.RepositoryConfig
-			client.RepositoryCache = settings.RepositoryCache
+
 			p := getter.All(settings)
 			vals, err := valueOpts.MergeValues(p)
 			if err != nil {

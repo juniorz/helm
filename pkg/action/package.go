@@ -45,9 +45,6 @@ type Package struct {
 	AppVersion       string
 	Destination      string
 	DependencyUpdate bool
-
-	RepositoryConfig string
-	RepositoryCache  string
 }
 
 // NewPackage creates a new Package object with the given configuration.
