@@ -108,10 +108,17 @@ func (c *ChartDownloader) DownloadTo(ref, version, dest string) (string, *proven
 	// If provenance is requested, verify it.
 	ver := &provenance.Verification{}
 	if c.Verify > VerifyNever {
-		body, err := g.Get(u.String() + ".prov")
+		provU, err := url.Parse(u.String())
+		if err != nil {
+			return destfile, ver, nil
+		}
+
+		provU.Path += ".prov"
+
+		body, err := g.Get(provU.String())
 		if err != nil {
 			if c.Verify == VerifyAlways {
-				return destfile, ver, errors.Errorf("failed to fetch provenance %q", u.String()+".prov")
+				return destfile, ver, errors.Errorf("failed to fetch provenance %q", provU.String())
 			}
 			fmt.Fprintf(c.Out, "WARNING: Verification not found for %s: %s\n", ref, err)
 			return destfile, ver, nil
