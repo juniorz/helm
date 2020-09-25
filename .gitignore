@@ -9,3 +9,6 @@ bin/
 vendor/
 # Ignores charts pulled for dependency build tests
 cmd/helm/testdata/testcharts/issue-7233/charts/*
+# Ignore charts cache dirs
+cmd/helm/testdata/helmhome/helm/charts/*
+pkg/downloader/testdata/charts/*
