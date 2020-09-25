@@ -110,7 +110,7 @@ func TestResolveChartOpts(t *testing.T) {
 			ref:            "http://example.com/foo-1.2.3.tgz",
 			expectChartURL: "http://example.com/foo-1.2.3.tgz",
 			expect: []getter.Option{
-				getter.WithURL("http://example.com"),
+				getter.WithTLSServerName("example.com"),
 			},
 		},
 		{
@@ -118,7 +118,7 @@ func TestResolveChartOpts(t *testing.T) {
 			ref:            "http://unknown-example.com/foo-1.2.3.tgz",
 			expectChartURL: "http://unknown-example.com/foo-1.2.3.tgz",
 			expect: []getter.Option{
-				getter.WithURL("http://unknown-example.com/foo-1.2.3.tgz"),
+				getter.WithTLSServerName("unknown-example.com"),
 			},
 		},
 	}
@@ -134,7 +134,7 @@ func TestResolveChartOpts(t *testing.T) {
 	}
 
 	// snapshot options
-	snapshotOpts := c.Options
+	snapshotOpts := []getter.Option{}
 
 	for _, tt := range tests {
 		// reset chart downloader options for each test case

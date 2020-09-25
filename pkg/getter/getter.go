@@ -47,6 +47,7 @@ type Option func(*options)
 
 // WithURL informs the getter the server name that will be used when fetching objects. Used in conjunction with
 // WithTLSClientConfig to set the TLSClientConfig's server name.
+// Deprecated: use getter.WithTLSServerName
 func WithURL(url string) Option {
 	return func(opts *options) {
 		if sni, err := urlutil.ExtractHostname(url); err == nil {
@@ -57,6 +58,8 @@ func WithURL(url string) Option {
 
 // WithTLSServerName sets the hostame used for TLS-SNI (i.e. tls.Config.ServerName).
 func WithTLSServerName(serverName string) Option {
+	// This useful in cases where getter.Get() receives an https URL with an IP
+	// But the certificate only has a server name, or the server requires SNI.
 	return func(opts *options) {
 		opts.tlsServerName = serverName
 	}

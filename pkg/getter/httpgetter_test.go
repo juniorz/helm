@@ -36,7 +36,7 @@ import (
 )
 
 func TestHTTPGetter(t *testing.T) {
-	g, _ := NewHTTPGetter(WithURL("http://example.com"))
+	g, _ := NewHTTPGetter()
 	if _, ok := g.(*HTTPGetter); !ok {
 		t.Fatal("Expected NewHTTPGetter to produce an *HTTPGetter")
 	}
@@ -51,6 +51,7 @@ func TestHTTPGetter(t *testing.T) {
 	g, _ = NewHTTPGetter(
 		WithBasicAuth("I", "Am"),
 		WithUserAgent("Groot"),
+		WithTLSServerName("example.com"),
 		WithTLSClientConfig(pub, priv, ca),
 		WithInsecureSkipVerifyTLS(insecure),
 		WithTimeout(timeout),
@@ -124,7 +125,7 @@ func TestDownload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := g.Get(srv.URL, WithURL(srv.URL))
+	got, err := g.Get(srv.URL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,14 +149,10 @@ func TestDownload(t *testing.T) {
 	defer basicAuthSrv.Close()
 
 	u, _ := url.ParseRequestURI(basicAuthSrv.URL)
-	httpgetter, err := NewHTTPGetter(
-		WithURL(u.String()),
+	httpgetter, _ := NewHTTPGetter(
 		WithBasicAuth("username", "password"),
 		WithUserAgent(expectedUserAgent),
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
 	got, err = httpgetter.Get(u.String())
 	if err != nil {
 		t.Fatal(err)
@@ -213,8 +210,11 @@ func TestDownloadTLS(t *testing.T) {
 
 		// test TLS validation actually validates
 		g, _ = NewHTTPGetter()
-		u.Host = "totally-legit-helm.sh"
-		if _, err := g.Get(ipAddress, WithURL(u.String()), WithTLSClientConfig(pub, priv, ca)); err == nil {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := g.Get(ipAddress, WithTLSServerName("totally-legit-helm.sh"), WithTLSClientConfig(pub, priv, ca)); err == nil {
 			t.Errorf("%s: expected to fail with: 'certificate is valid for helm.sh, not totally-legit-helm.sh'", aURL)
 		}
 	}
@@ -227,17 +227,13 @@ func TestDownloadInsecureSkipTLSVerify(t *testing.T) {
 	u, _ := url.ParseRequestURI(ts.URL)
 
 	// Ensure the default behaviour did not change
-	g, _ := NewHTTPGetter(
-		WithURL(u.String()),
-	)
-
+	g, _ := NewHTTPGetter()
 	if _, err := g.Get(u.String()); err == nil {
 		t.Errorf("Expected Getter to throw an error, got %s", err)
 	}
 
 	// Test certificate check skip
 	g, _ = NewHTTPGetter(
-		WithURL(u.String()),
 		WithInsecureSkipVerifyTLS(true),
 	)
 	if _, err := g.Get(u.String()); err != nil {
@@ -268,8 +264,12 @@ func TestHTTPGetterTarDownload(t *testing.T) {
 
 	defer srv.Close()
 
-	g, _ := NewHTTPGetter(WithURL(srv.URL))
-	data, _ := g.Get(srv.URL)
+	g, _ := NewHTTPGetter()
+	data, err := g.Get(srv.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	mimeType := http.DetectContentType(data.Bytes())
 
 	expectedMimeType := "application/x-gzip"

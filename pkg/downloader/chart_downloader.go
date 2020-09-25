@@ -159,7 +159,7 @@ func (c *ChartDownloader) ResolveChartVersion(ref, version string) (*url.URL, er
 	if err != nil {
 		return nil, errors.Errorf("invalid chart URL format: %s", ref)
 	}
-	c.Options = append(c.Options, getter.WithURL(ref))
+	c.Options = append(c.Options, getter.WithURL(ref)) // TODO: remove me
 
 	rf, err := loadRepoConfig(c.RepositoryConfig)
 	if err != nil {
@@ -185,10 +185,7 @@ func (c *ChartDownloader) ResolveChartVersion(ref, version string) (*url.URL, er
 
 		// If we get here, we don't need to go through the next phase of looking
 		// up the URL. We have it already. So we just set the parameters and return.
-		c.Options = append(
-			c.Options,
-			getter.WithURL(rc.URL),
-		)
+		c.Options = append(c.Options, getter.WithURL(rc.URL)) // TODO: remove
 		if rc.CertFile != "" || rc.KeyFile != "" || rc.CAFile != "" {
 			c.Options = append(c.Options, getter.WithTLSClientConfig(rc.CertFile, rc.KeyFile, rc.CAFile))
 		}
@@ -262,8 +259,6 @@ func (c *ChartDownloader) ResolveChartVersion(ref, version string) (*url.URL, er
 		repoURL.Path = strings.TrimSuffix(repoURL.Path, "/") + "/"
 		u = repoURL.ResolveReference(u)
 		u.RawQuery = q.Encode()
-		// TODO add user-agent
-		return u, err
 	}
 
 	// TODO add user-agent

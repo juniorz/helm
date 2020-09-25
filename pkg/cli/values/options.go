@@ -116,6 +116,6 @@ func readFile(filePath string, p getter.Providers) ([]byte, error) {
 	if err != nil {
 		return ioutil.ReadFile(filePath)
 	}
-	data, err := g.Get(filePath, getter.WithURL(filePath))
+	data, err := g.Get(filePath)
 	return data.Bytes(), err
 }
