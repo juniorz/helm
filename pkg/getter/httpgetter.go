@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"io"
+	"net"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -57,6 +58,13 @@ func (g *HTTPGetter) get(href string) (*bytes.Buffer, error) {
 
 	if g.opts.username != "" && g.opts.password != "" {
 		req.SetBasicAuth(g.opts.username, g.opts.password)
+	}
+
+	// Defaults tlsServerName to the requests hostname
+	// This accounts for cases where ChartPathOptions configures TLS
+	// but the TLS servername is not known beforehand
+	if sni := req.URL.Hostname(); g.opts.tlsServerName == "" && net.ParseIP(sni) == nil {
+		g.opts.tlsServerName = sni
 	}
 
 	client, err := g.httpClient()
