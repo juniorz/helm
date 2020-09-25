@@ -24,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 
 	"helm.sh/helm/v3/internal/tlsutil"
-	"helm.sh/helm/v3/internal/urlutil"
 	"helm.sh/helm/v3/internal/version"
 )
 
@@ -101,11 +100,7 @@ func (g *HTTPGetter) httpClient() (*http.Client, error) {
 		}
 		tlsConf.BuildNameToCertificate()
 
-		sni, err := urlutil.ExtractHostname(g.opts.url)
-		if err != nil {
-			return nil, err
-		}
-		tlsConf.ServerName = sni
+		tlsConf.ServerName = g.opts.tlsServerName
 
 		transport.TLSClientConfig = tlsConf
 	}

@@ -22,6 +22,7 @@ import (
 
 	"github.com/pkg/errors"
 
+	"helm.sh/helm/v3/internal/urlutil"
 	"helm.sh/helm/v3/pkg/cli"
 )
 
@@ -29,7 +30,7 @@ import (
 //
 // Getters may or may not ignore these parameters as they are passed in.
 type options struct {
-	url                   string
+	tlsServerName         string
 	certFile              string
 	keyFile               string
 	caFile                string
@@ -48,7 +49,16 @@ type Option func(*options)
 // WithTLSClientConfig to set the TLSClientConfig's server name.
 func WithURL(url string) Option {
 	return func(opts *options) {
-		opts.url = url
+		if sni, err := urlutil.ExtractHostname(url); err == nil {
+			opts.tlsServerName = sni
+		}
+	}
+}
+
+// WithTLSServerName sets the hostame used for TLS-SNI (i.e. tls.Config.ServerName).
+func WithTLSServerName(serverName string) Option {
+	return func(opts *options) {
+		opts.tlsServerName = serverName
 	}
 }
 
