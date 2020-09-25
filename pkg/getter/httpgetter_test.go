@@ -168,6 +168,7 @@ func TestDownload(t *testing.T) {
 
 func TestDownloadTLS(t *testing.T) {
 	cd := "../../testdata"
+	// Certificate's server name is "helm.sh"
 	ca, pub, priv := filepath.Join(cd, "rootca.crt"), filepath.Join(cd, "crt.pem"), filepath.Join(cd, "key.pem")
 
 	tlsSrv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
@@ -182,25 +183,40 @@ func TestDownloadTLS(t *testing.T) {
 	defer tlsSrv.Close()
 
 	u, _ := url.ParseRequestURI(tlsSrv.URL)
-	g, _ := NewHTTPGetter(
-		WithURL(u.String()),
-		WithTLSClientConfig(pub, priv, ca),
-	)
+	ipAddress := u.String()
 
-	if _, err := g.Get(u.String()); err != nil {
-		t.Error(err)
-	}
+	u.Host = tlsConf.ServerName
+	hostnameAddress := u.String()
 
-	// now test with TLS config being passed along in .Get (see #6635)
-	g, _ = NewHTTPGetter()
-	if _, err := g.Get(u.String(), WithURL(u.String()), WithTLSClientConfig(pub, priv, ca)); err != nil {
-		t.Error(err)
-	}
+	// tlsSrv.URL has an IP as host (127.0.0.1)
+	// for this reason, need to also test with a hostname address
+	for _, aURL := range []string{ipAddress, hostnameAddress} {
+		g, _ := NewHTTPGetter(
+			WithURL(aURL),
+			WithTLSClientConfig(pub, priv, ca),
+		)
+		if _, err := g.Get(ipAddress); err != nil {
+			t.Errorf("%s: %s", aURL, err)
+		}
 
-	// test with only the CA file (see also #6635)
-	g, _ = NewHTTPGetter()
-	if _, err := g.Get(u.String(), WithURL(u.String()), WithTLSClientConfig("", "", ca)); err != nil {
-		t.Error(err)
+		// now test with TLS config being passed along in .Get (see #6635)
+		g, _ = NewHTTPGetter()
+		if _, err := g.Get(ipAddress, WithURL(aURL), WithTLSClientConfig(pub, priv, ca)); err != nil {
+			t.Errorf("%s: %s", aURL, err)
+		}
+
+		// test with only the CA file (see also #6635)
+		g, _ = NewHTTPGetter()
+		if _, err := g.Get(ipAddress, WithURL(aURL), WithTLSClientConfig("", "", ca)); err != nil {
+			t.Errorf("%s: %s", aURL, err)
+		}
+
+		// test TLS validation actually validates
+		g, _ = NewHTTPGetter()
+		u.Host = "totally-legit-helm.sh"
+		if _, err := g.Get(ipAddress, WithURL(u.String()), WithTLSClientConfig(pub, priv, ca)); err == nil {
+			t.Errorf("%s: expected to fail with: 'certificate is valid for helm.sh, not totally-legit-helm.sh'", aURL)
+		}
 	}
 }
 
