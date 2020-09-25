@@ -832,9 +832,8 @@ const managerKeyPrefix = "helm-manager-"
 // safe name that is unique for querying. To accomplish this a unique hash of
 // the string is used.
 func key(name string) (string, error) {
-	in := strings.NewReader(name)
 	hash := crypto.SHA256.New()
-	if _, err := io.Copy(hash, in); err != nil {
+	if _, err := io.WriteString(hash, name); err != nil {
 		return "", nil
 	}
 	return hex.EncodeToString(hash.Sum(nil)), nil
