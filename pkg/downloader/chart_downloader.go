@@ -172,6 +172,7 @@ func (c *ChartDownloader) ResolveChartVersion(ref, version string) (*url.URL, er
 		// through each repo cache file and finding a matching URL. But basically
 		// we want to find the repo in case we have special SSL cert config
 		// for that repo.
+		c.Options = append(c.Options, getter.WithTLSServerName(u.Hostname())) // TODO: remove
 
 		rc, err := c.scanReposForURL(ref, rf)
 		if err != nil {
@@ -218,6 +219,8 @@ func (c *ChartDownloader) ResolveChartVersion(ref, version string) (*url.URL, er
 	}
 
 	if r != nil && r.Config != nil {
+		c.Options = append(c.Options, getter.WithURL(r.Config.URL)) // TODO: remove
+
 		if r.Config.CertFile != "" || r.Config.KeyFile != "" || r.Config.CAFile != "" {
 			c.Options = append(c.Options, getter.WithTLSClientConfig(r.Config.CertFile, r.Config.KeyFile, r.Config.CAFile))
 		}

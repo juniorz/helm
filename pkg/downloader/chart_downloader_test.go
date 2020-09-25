@@ -88,12 +88,15 @@ func TestResolveChartOpts(t *testing.T) {
 		expect             []getter.Option
 		expectChartURL     string
 	}{
+		// TODO: Now they all make sense in terms of getter.WithTLSServerName()
+		// But if they are all the chart's URL host, what's the point?
+		// Why not simply default to the chart's URL host?
 		{
 			name:           "reference",
 			ref:            "testing/alpine",
 			expectChartURL: "http://example.com/alpine-1.2.3.tgz",
 			expect: []getter.Option{
-				getter.WithURL("testing/alpine"), // useless: has no influence on TLS server name
+				getter.WithTLSServerName("example.com"),
 			},
 		},
 		{
@@ -101,7 +104,7 @@ func TestResolveChartOpts(t *testing.T) {
 			ref:            "testing-ca-file/foo",
 			expectChartURL: "https://example.com/foo-1.2.3.tgz",
 			expect: []getter.Option{
-				getter.WithURL("testing-ca-file/foo"), // useless: has no influence on TLS server name
+				getter.WithTLSServerName("example.com"),
 				getter.WithTLSClientConfig("cert", "key", "ca"),
 			},
 		},
