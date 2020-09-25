@@ -112,28 +112,19 @@ func TestResolveChartOpts(t *testing.T) {
 		// reset chart downloader options for each test case
 		c.Options = snapshotOpts
 
-		expect, err := getter.NewHTTPGetter(tt.expect...)
-		if err != nil {
-			t.Errorf("%s: failed to setup http client: %s", tt.name, err)
-			continue
-		}
-
+		expect, _ := getter.NewHTTPGetter(tt.expect...)
 		u, err := c.ResolveChartVersion(tt.ref, tt.version)
 		if err != nil {
 			t.Errorf("%s: failed with error %s", tt.name, err)
 			continue
 		}
 
-		got, err := getter.NewHTTPGetter(
+		got, _ := getter.NewHTTPGetter(
 			append(
 				c.Options,
 				getter.WithURL(u.String()),
 			)...,
 		)
-		if err != nil {
-			t.Errorf("%s: failed to create http client: %s", tt.name, err)
-			continue
-		}
 
 		if *(got.(*getter.HTTPGetter)) != *(expect.(*getter.HTTPGetter)) {
 			t.Errorf("%s: expected %s, got %s", tt.name, expect, got)

@@ -263,9 +263,6 @@ func (c *ChartDownloader) ResolveChartVersion(ref, version string) (*url.URL, er
 		u = repoURL.ResolveReference(u)
 		u.RawQuery = q.Encode()
 		// TODO add user-agent
-		if _, err := getter.NewHTTPGetter(getter.WithURL(rc.URL)); err != nil {
-			return repoURL, err
-		}
 		return u, err
 	}
 
